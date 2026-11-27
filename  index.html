@@ -1,0 +1,555 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  ShieldAlert, Trophy, Users, User, Bell, Gamepad2, 
+  MessageCircle, ExternalLink, ChevronRight, CheckCircle2, 
+  AlertCircle, Lock, Unlock, LogOut, Trash2, Edit3, 
+  PlusCircle, Trash, RefreshCw, Smartphone, Globe, Moon, Sun 
+} from 'lucide-react';
+
+// --- Theme & Styling Constants ---
+const PRIMARY_COLOR = '#E50914'; // Neon Red
+const BG_DARK = '#0A0A0A';
+const SURFACE_DARK = '#141414';
+const TEXT_LIGHT = '#FFFFFF';
+const TEXT_MUTED = '#A3A3A3';
+
+export default function DangerXBDApp() {
+  // App State
+  const [lang, setLang] = useState('bn'); // 'bn' or 'en'
+  const [theme, setTheme] = useState('dark');
+  const [activeTab, setActiveTab] = useState('home');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [userProfile, setUserProfile] = useState({
+    nickname: 'DANGER_Pro',
+    uid: '1234567890',
+    idLevel: '75',
+    teamName: 'DANGER Squad',
+    role: 'Member',
+    matches: '142',
+    wins: '38',
+    kills: '412',
+    points: '1850',
+    rank: 'Grandmaster',
+    favMode: 'SQUAD',
+    avatar: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=150&auto=format&fit=crop&q=80'
+  });
+
+  // Navigation Data
+  const tabs = [
+    { id: 'home', label: t('হোম', 'Home'), icon: Gamepad2 },
+    { id: 'tournaments', label: t('টুর্নামেন্ট', 'Tournaments'), icon: Trophy },
+    { id: 'leaderboard', label: t('লিডারবোর্ড', 'Leaderboard'), icon: Users },
+    { id: 'notifications', label: t('নোটিফিকেশন', 'Notifications'), icon: Bell },
+    { id: 'profile', label: t('প্রোফাইল', 'Profile'), icon: User }
+  ];
+
+  // Helper Translation Function
+  function t(bnText, enText) {
+    return lang === 'bn' ? bnText : enText;
+  }
+
+  // Handle Language Switch
+  const toggleLanguage = () => {
+    setLang(prev => (prev === 'bn' ? 'en' : 'bn'));
+  };
+
+  // Mock Tournament Data
+  const [tournaments, setTournaments] = useState([
+    {
+      id: 'DEXBD-101',
+      title: 'DANGER X BD 🔥 Mega Squad Championship',
+      gameMode: 'SQUAD',
+      map: 'Bermuda',
+      status: 'Registration Open',
+      date: '2026-11-30',
+      time: '08:00 PM',
+      deadline: '2026-11-30 06:00 PM',
+      maxSlots: 48,
+      registeredTeams: 34,
+      banner: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80',
+      rules: [
+        'No hacking, scripting, or unauthorized config files.',
+        'No teaming between different squads.',
+        'Emulators are strictly prohibited.',
+        'Must join the tournament room 15 minutes before match time.'
+      ],
+      prize: 'Exclusive DANGER Champion Role & Non-Cash Recognition',
+      roomId: 'PENDING',
+      roomPass: 'PENDING'
+    },
+    {
+      id: 'DEXBD-102',
+      title: 'Friday Night Solo Clash Royale',
+      gameMode: 'SOLO',
+      map: 'Alpine',
+      status: 'Upcoming',
+      date: '2026-12-05',
+      time: '09:00 PM',
+      deadline: '2026-12-05 07:00 PM',
+      maxSlots: 50,
+      registeredTeams: 22,
+      banner: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&auto=format&fit=crop&q=80',
+      rules: ['Solo play only.', 'Fair play strictly enforced.', 'Respect admins.'],
+      prize: 'Top Fragger Badge & Social Media Feature',
+      roomId: 'PENDING',
+      roomPass: 'PENDING'
+    },
+    {
+      id: 'DEXBD-103',
+      title: 'Last Win Survival Challenge',
+      gameMode: 'LAST WIN',
+      map: 'Purgatory',
+      status: 'Completed',
+      date: '2026-11-20',
+      time: '07:30 PM',
+      deadline: '2026-11-20 05:30 PM',
+      maxSlots: 40,
+      registeredTeams: 40,
+      banner: 'https://images.unsplash.com/photo-1612287230202-1ff1286d8f8d?w=800&auto=format&fit=crop&q=80',
+      rules: ['Last surviving player wins.'],
+      prize: 'Season MVP Trophy',
+      roomId: 'EXPIR_9988',
+      roomPass: 'HIDDEN'
+    }
+  ]);
+
+  // Notifications State
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: 'স্বাগতম!', message: 'DANGER X BD 🔥 কমিউনিটিতে আপনাকে স্বাগতম।', time: '10 mins ago', unread: true },
+    { id: 2, title: 'টুর্নামেন্ট আপডেট', message: 'Mega Squad Championship এর রেজিস্ট্রেশন চলছে!', time: '1 hour ago', unread: true }
+  ]);
+
+  // Admin Panel States
+  const [adminEmail, setAdminEmail] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [adminError, setAdminError] = useState('');
+  const [newTourney, setNewTourney] = useState({
+    title: '', gameMode: 'SQUAD', map: 'Bermuda', date: '', time: '', maxSlots: 48, prize: '', rules: '', banner: ''
+  });
+
+  // Handle Admin Login
+  const handleAdminLogin = (e) => {
+    e.preventDefault();
+    if (adminEmail.trim().toLowerCase() === 'abdulmomin3453@gmail.com' && adminPassword === 'mominyt17') {
+      setIsAdmin(true);
+      setShowAdminLogin(false);
+      setAdminError('');
+      alert(t('এডমিন প্যানেলে সফলভাবে প্রবেশ করেছেন!', 'Successfully entered Admin Panel!'));
+    } else {
+      setAdminError(t('ভুল জিমেইল অথবা পাসওয়ার্ড!', 'Wrong Gmail or Password!'));
+    }
+    setAdminEmail('');
+    setAdminPassword('');
+  };
+
+  // Create Tournament (Admin)
+  const handleCreateTournament = (e) => {
+    e.preventDefault();
+    if (!newTourney.title || !newTourney.date) {
+      alert(t('দয়া করে শিরোনাম এবং তারিখ দিন', 'Please provide title and date'));
+      return;
+    }
+    const created = {
+      id: 'DEXBD-' + Math.floor(100 + Math.random() * 900),
+      ...newTourney,
+      rules: newTourney.rules ? newTourney.rules.split(',').map(r => r.trim()) : ['Fair play strictly enforced.'],
+      status: 'Registration Open',
+      registeredTeams: 0,
+      roomId: 'PENDING',
+      roomPass: 'PENDING',
+      banner: newTourney.banner || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80'
+    };
+    setTournaments([created, ...tournaments]);
+    setNewTourney({ title: '', gameMode: 'SQUAD', map: 'Bermuda', date: '', time: '', maxSlots: 48, prize: '', rules: '', banner: '' });
+    alert(t('টুর্নামেন্ট সফলভাবে তৈরি হয়েছে!', 'Tournament created successfully!'));
+  };
+
+  // Publish Room Credentials (Admin)
+  const publishRoomCredentials = (id, roomId, roomPass) => {
+    if (!isAdmin) return;
+    setTournaments(tournaments.map(t => t.id === id ? { ...t, roomId, roomPass, status: 'Live' } : t));
+    alert(t(`রুম আইডি ${roomId} এবং পাসওয়ার্ড প্রকাশিত হয়েছে!`, `Room ID ${roomId} and Password published!`));
+  };
+
+  return (
+    <div className={`min-h-screen font-sans transition-colors duration-300 ${theme === 'dark' ? 'bg-black text-white' : 'bg-gray-100 text-black'}`}>
+      
+      {/* Top Header / Branding */}
+      <header className={`sticky top-0 z-50 border-b border-red-900/50 p-4 flex items-center justify-between shadow-lg backdrop-blur-md ${theme === 'dark' ? 'bg-black/90' : 'bg-black text-white'}`}>
+        <div className="flex items-center space-x-2">
+          <ShieldAlert className="w-8 h-8 text-[#E50914] animate-pulse" />
+          <div>
+            <h1 className="text-xl font-black tracking-wider flex items-center gap-1">
+              DANGER <span className="text-[#E50914]">X</span> BD <span className="text-sm">🔥</span>
+            </h1>
+            <p className="text-[10px] text-[#A3A3A3] tracking-widest uppercase">{t('ফ্রি ফায়ার ইস্পোর্টস কমিউনিটি', 'Free Fire Esports Community')}</p>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <button onClick={toggleLanguage} className="flex items-center gap-1 px-3 py-1 text-xs font-bold border border-[#E50914] rounded-full text-[#E50914] hover:bg-[#E50914] hover:text-white transition">
+            <Globe className="w-3.5 h-3.5" />
+            {lang === 'bn' ? 'ENGLISH' : 'বাংলা'}
+          </button>
+          
+          <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="p-2 rounded-full border border-gray-700 hover:border-[#E50914] text-gray-300 hover:text-[#E50914] transition">
+            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4 text-black" />}
+          </button>
+        </div>
+      </header>
+
+      {/* Main Content Area */}
+      <main className="pb-24 pt-4 px-4 max-w-4xl mx-auto">
+        
+        {/* ==================== HOME TAB ==================== */}
+        {activeTab === 'home' && (
+          <div className="space-y-6">
+            {/* Player Quick Banner */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-red-950 via-black to-gray-900 border border-[#E50914] p-6 shadow-2xl flex items-center justify-between">
+              <div className="space-y-2 z-10">
+                <span className="px-3 py-1 bg-[#E50914] text-white text-[10px] font-black tracking-widest rounded-full uppercase">
+                  {t('অফিসিয়াল প্লেয়ার', 'Official Player')}
+                </span>
+                <h2 className="text-2xl font-black text-white">{userProfile.nickname}</h2>
+                <div className="flex items-center gap-4 text-xs text-gray-300">
+                  <span><strong>UID:</strong> {userProfile.uid}</span>
+                  <span><strong>LVL:</strong> {userProfile.idLevel}</span>
+                </div>
+              </div>
+              <img src={userProfile.avatar} alt="Avatar" className="w-20 h-20 rounded-full border-2 border-[#E50914] object-cover shadow-lg z-10" />
+            </div>
+
+            {/* Featured Tournament Slider */}
+            <div>
+              <h3 className="text-lg font-bold mb-3 flex items-center gap-2 text-[#E50914]">
+                <Trophy className="w-5 h-5" /> {t('ফিচার্ড টুর্নামেন্ট', 'Featured Tournament')}
+              </h3>
+              <div className="rounded-xl overflow-hidden border border-[#E50914] shadow-lg relative group">
+                <img src={tournaments[0].banner} alt="Banner" className="w-full h-48 object-cover brightness-75 group-hover:scale-105 transition duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent flex flex-col justify-end p-4">
+                  <span className="self-start px-2 py-0.5 bg-[#E50914] text-white text-[9px] font-bold rounded mb-1">{tournaments[0].status}</span>
+                  <h4 className="text-lg font-black text-white">{tournaments[0].title}</h4>
+                  <p className="text-xs text-gray-300">Mode: {tournaments[0].gameMode} | Map: {tournaments[0].map}</p>
+                  <button onClick={() => setActiveTab('tournaments')} className="mt-3 self-start px-4 py-1.5 bg-white text-black font-bold text-xs rounded hover:bg-[#E50914] hover:text-white transition flex items-center gap-1">
+                    {t('রেজিস্ট্রেশন করুন', 'Register Now')} <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Support & Socials Card */}
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-3">
+              <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest">{t('জরুরি যোগাযোগ ও সাপোর্ট', 'Official Support & Contact')}</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <a href="https://wa.me/01645734289" target="_blank" rel="noreferrer" className="p-2.5 bg-green-600/20 border border-green-500 rounded-lg flex flex-col items-center justify-center text-center hover:bg-green-600 transition">
+                  <MessageCircle className="w-6 h-6 text-green-500 mb-1" />
+                  <span className="text-xs font-bold text-white">WhatsApp</span>
+                  <span className="text-[10px] text-gray-300">01645734289</span>
+                </a>
+                <a href="https://t.me/8801734432955" target="_blank" rel="noreferrer" className="p-2.5 bg-blue-600/20 border border-blue-500 rounded-lg flex flex-col items-center justify-center text-center hover:bg-blue-600 transition">
+                  <ExternalLink className="w-6 h-6 text-blue-500 mb-1" />
+                  <span className="text-xs font-bold text-white">Telegram</span>
+                  <span className="text-[10px] text-gray-300">8801734432955</span>
+                </a>
+                <a href="https://www.youtube.com/@DANGER.X.BD-m" target="_blank" rel="noreferrer" className="p-2.5 bg-red-600/20 border border-red-500 rounded-lg flex flex-col items-center justify-center text-center hover:bg-red-600 transition">
+                  <ExternalLink className="w-6 h-6 text-red-500 mb-1" />
+                  <span className="text-xs font-bold text-white">YouTube</span>
+                  <span className="text-[10px] text-gray-300">DANGER X BD</span>
+                </a>
+                <div className="p-2.5 bg-yellow-600/20 border border-yellow-500 rounded-lg flex flex-col items-center justify-center text-center">
+                  <AlertCircle className="w-6 h-6 text-yellow-500 mb-1" />
+                  <span className="text-xs font-bold text-white">Nagad Official</span>
+                  <span className="text-[10px] text-gray-300">01733024817</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* ==================== TOURNAMENTS TAB ==================== */}
+        {activeTab === 'tournaments' && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold border-b border-red-900 pb-2 text-[#E50914] flex items-center gap-2">
+              <Trophy className="w-6 h-6" /> {t('চলমান ও আপকামিং টুর্নামেন্ট', 'Active & Upcoming Tournaments')}
+            </h2>
+
+            {tournaments.map((tItem) => (
+              <div key={tItem.id} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-md">
+                <img src={tItem.banner} alt="Tournament" className="w-full h-36 object-cover" />
+                <div className="p-4 space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="px-2 py-0.5 bg-red-900/50 text-[#E50914] text-[10px] font-bold rounded border border-red-800">{tItem.status}</span>
+                      <h3 className="text-base font-black text-white mt-1">{tItem.title}</h3>
+                    </div>
+                    <span className="px-2 py-1 bg-gray-800 text-xs font-bold text-white rounded">{tItem.gameMode}</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs text-gray-400 bg-black/40 p-2 rounded">
+                    <div><strong>Map:</strong> {tItem.map}</div>
+                    <div><strong>Date:</strong> {tItem.date} {tItem.time}</div>
+                    <div><strong>Slots:</strong> {tItem.registeredTeams}/{tItem.maxSlots}</div>
+                    <div><strong>Entry Fee:</strong> FREE</div>
+                  </div>
+
+                  {/* Rules Box */}
+                  <div className="text-xs text-gray-300">
+                    <strong className="text-white block mb-1">📝 Rules:</strong>
+                    <ul className="list-disc list-inside space-y-0.5">
+                      {Array.isArray(tItem.rules) ? tItem.rules.map((rule, idx) => <li key={idx}>{rule}</li>) : <li>{tItem.rules}</li>}
+                    </ul>
+                  </div>
+
+                  {/* Room Credentials Section */}
+                  {(tItem.roomId !== 'PENDING' && tItem.roomId !== 'HIDDEN') ? (
+                    <div className="p-3 bg-green-950 border border-green-500 rounded-lg space-y-1">
+                      <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest">🔒 Room Credentials (Registered Only)</span>
+                      <div className="flex justify-between text-sm font-mono font-bold text-white">
+                        <span>ROOM ID: {tItem.roomId}</span>
+                        <span>PASSWORD: {tItem.roomPass}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-red-950/40 border border-red-500/50 rounded-lg flex items-center justify-between text-xs text-red-300">
+                      <span>🔒 Room ID will be published before match</span>
+                      <span className="animate-pulse">⏳ Awaiting Admin</span>
+                    </div>
+                  )}
+
+                  {/* Reg Button */}
+                  <button onClick={() => alert(t('আপনি এই টুর্নামেন্টে রেজিস্টার্ড করেছেন!', 'You have registered for this tournament!'))} className="w-full py-2 bg-[#E50914] text-white font-bold rounded-lg hover:bg-red-700 transition">
+                    {t('টুর্নামেন্টে জয়েন করুন (Free)', 'Join Tournament (Free)')}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ==================== LEADERBOARD TAB ==================== */}
+        {activeTab === 'leaderboard' && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold border-b border-red-900 pb-2 text-[#E50914] flex items-center gap-2">
+              <Users className="w-6 h-6" /> {t('সেরা খেলোয়াড়দের লিডারবোর্ড', 'Top Players Leaderboard')}
+            </h2>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-900 border-b border-gray-800 text-xs text-gray-400">
+                    <th className="p-3">Rank</th>
+                    <th className="p-3">Player</th>
+                    <th className="p-3">Mode</th>
+                    <th className="p-3 text-right">Points</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-800 text-sm">
+                  <tr className="bg-yellow-950/20 font-bold text-yellow-500">
+                    <td className="p-3">🥇 #1</td>
+                    <td className="p-3 flex items-center gap-2"><img src={userProfile.avatar} className="w-6 h-6 rounded-full" /> DANGER_King</td>
+                    <td className="p-3">SQUAD</td>
+                    <td className="p-3 text-right">3450</td>
+                  </tr>
+                  <tr className="bg-gray-900/50 font-bold text-gray-300">
+                    <td className="p-3">🥈 #2</td>
+                    <td className="p-3 flex items-center gap-2"><img src={userProfile.avatar} className="w-6 h-6 rounded-full" /> Dark_Assassin</td>
+                    <td className="p-3">SOLO</td>
+                    <td className="p-3 text-right">2900</td>
+                  </tr>
+                  <tr className="bg-gray-900/30 font-bold text-gray-400">
+                    <td className="p-3">🥉 #3</td>
+                    <td className="p-3 flex items-center gap-2"><img src={userProfile.avatar} className="w-6 h-6 rounded-full" /> Venom_FF</td>
+                    <td className="p-3">CLASH SQUAD</td>
+                    <td className="p-3 text-right">2850</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Achievement Badges Info */}
+            <div className="mt-6 bg-gray-900 border border-gray-800 p-4 rounded-xl">
+              <h4 className="text-sm font-bold text-white mb-2">{t('নন-ক্যাশ অ্যাচিভমেন্ট ও রিওয়ার্ড ব্যাজ', 'Non-Cash Achievement & Reward Badges')}</h4>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                {t('সকল টুর্নামেন্ট সম্পূর্ণ ফ্রি এবং এখানে কোনো ধরনের জুয়া বা রিয়েল-মানি ট্রানজেকশন নেই। শীর্ষ খেলোয়াড়দের সম্মাননা হিসেবে এক্সক্লুসিভ ইন-গেম রোল এবং সোশ্যাল মিডিয়া ফিচার প্রদান করা হয়।', 'All tournaments are 100% free with no gambling or real-money transactions. Top players receive exclusive in-game roles and social media features as recognition.')}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* ==================== NOTIFICATIONS TAB ==================== */}
+        {activeTab === 'notifications' && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold border-b border-red-900 pb-2 text-[#E50914] flex items-center gap-2">
+              <Bell className="w-6 h-6" /> {t('নোটিফিকেশন ও ঘোষণা', 'Notifications & Announcements')}
+            </h2>
+
+            {notifications.map((n) => (
+              <div key={n.id} className={`p-4 rounded-xl border transition ${n.unread ? 'bg-red-950/20 border-red-500/50' : 'bg-gray-900 border-gray-800 opacity-75'}`}>
+                <div className="flex justify-between items-start">
+                  <h4 className="text-sm font-bold text-white">{n.title}</h4>
+                  <span className="text-[10px] text-gray-500">{n.time}</span>
+                </div>
+                <p className="text-xs text-gray-300 mt-1">{n.message}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ==================== PROFILE & ADMIN TAB ==================== */}
+        {activeTab === 'profile' && (
+          <div className="space-y-6">
+            
+            {/* User Info Card */}
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center space-y-4">
+              <img src={userProfile.avatar} alt="Profile" className="w-24 h-24 rounded-full border-4 border-[#E50914] mx-auto object-cover shadow-xl" />
+              <div>
+                <h3 className="text-xl font-black text-white">{userProfile.nickname}</h3>
+                <span className="inline-block px-2 py-0.5 mt-1 bg-red-900 text-[#E50914] text-xs font-bold rounded">{userProfile.rank}</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-left bg-black p-3 rounded-lg text-xs">
+                <div><strong className="text-gray-400">Free Fire UID:</strong> <span className="font-mono text-white">{userProfile.uid}</span></div>
+                <div><strong className="text-gray-400">Team:</strong> <span className="text-white">{userProfile.teamName}</span></div>
+                <div><strong className="text-gray-400">Total Matches:</strong> <span className="text-white">{userProfile.matches}</span></div>
+                <div><strong className="text-gray-400">Total Kills:</strong> <span className="text-white">{userProfile.kills}</span></div>
+                <div><strong className="text-gray-400">Total Wins:</strong> <span className="text-white">{userProfile.wins}</span></div>
+                <div><strong className="text-gray-400">Total Points:</strong> <span className="text-white">{userProfile.points}</span></div>
+              </div>
+
+              {/* Admin Switcher */}
+              {!isAdmin ? (
+                <button onClick={() => setShowAdminLogin(!showAdminLogin)} className="w-full py-2 bg-gray-800 text-gray-300 hover:bg-gray-700 text-xs font-bold rounded-lg border border-gray-700 transition flex items-center justify-center gap-2">
+                  <Lock className="w-4 h-4 text-[#E50914]" /> {t('এডমিন প্যানেল লগইন (Admin Login)', 'Admin Panel Login')}
+                </button>
+              ) : (
+                <div className="p-3 bg-green-950 border border-green-500 rounded-lg text-xs text-green-400 flex items-center justify-between">
+                  <span>🟢 Admin Access Active (abdulmomin3453@gmail.com)</span>
+                  <button onClick={() => setIsAdmin(false)} className="text-white underline font-bold">Logout Admin</button>
+                </div>
+              )}
+            </div>
+
+            {/* Admin Login Form Modal */}
+            {showAdminLogin && !isAdmin && (
+              <form onSubmit={handleAdminLogin} className="bg-gray-900 border-2 border-[#E50914] p-4 rounded-xl space-y-3">
+                <h4 className="text-sm font-bold text-white flex items-center gap-1">
+                  <Lock className="w-4 h-4 text-[#E50914]" /> {t('এডমিন জিমেইল ও পাসওয়ার্ড দিন', 'Enter Admin Gmail & Password')}
+                </h4>
+                <input 
+                  type="email" 
+                  value={adminEmail} 
+                  onChange={(e) => setAdminEmail(e.target.value)} 
+                  placeholder="Admin Gmail (abdulmomin3453@gmail.com)" 
+                  className="w-full p-2 bg-black border border-gray-700 rounded text-white text-sm focus:border-[#E50914] outline-none"
+                  required
+                />
+                <input 
+                  type="password" 
+                  value={adminPassword} 
+                  onChange={(e) => setAdminPassword(e.target.value)} 
+                  placeholder="Password (mominyt17)" 
+                  className="w-full p-2 bg-black border border-gray-700 rounded text-white text-sm focus:border-[#E50914] outline-none"
+                  required
+                />
+                {adminError && <p className="text-xs text-red-500 font-bold">{adminError}</p>}
+                <button type="submit" className="w-full py-2 bg-[#E50914] text-white text-xs font-bold rounded hover:bg-red-700 transition">
+                  {t('প্রবেশ করুন', 'Unlock Admin Panel')}
+                </button>
+              </form>
+            )}
+
+            {/* Admin Dashboard Section */}
+            {isAdmin && (
+              <div className="bg-gray-900 border-2 border-red-600 rounded-xl p-4 space-y-4">
+                <h3 className="text-base font-black text-[#E50914] border-b border-red-900 pb-2 flex items-center gap-2">
+                  <ShieldAlert className="w-5 h-5" /> 👑 DANGER X BD ADMIN DASHBOARD
+                </h3>
+
+                {/* Create Tournament Form */}
+                <form onSubmit={handleCreateTournament} className="bg-black p-4 rounded-lg border border-gray-800 space-y-3">
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">➕ Create New Tournament</h4>
+                  <input type="text" placeholder="Tournament Title" value={newTourney.title} onChange={e => setNewTourney({...newTourney, title: e.target.value})} className="w-full p-2 bg-gray-900 border border-gray-700 rounded text-xs text-white" required />
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <select value={newTourney.gameMode} onChange={e => setNewTourney({...newTourney, gameMode: e.target.value})} className="p-2 bg-gray-900 border border-gray-700 rounded text-xs text-white">
+                      <option value="SOLO">SOLO</option>
+                      <option value="DUO">DUO</option>
+                      <option value="SQUAD">SQUAD</option>
+                      <option value="BATTLE ROYALE (BR)">BATTLE ROYALE (BR)</option>
+                      <option value="CLASH SQUAD (CS)">CLASH SQUAD (CS)</option>
+                      <option value="LONE WOLF">LONE WOLF</option>
+                      <option value="LAST WIN">LAST WIN</option>
+                    </select>
+                    <input type="text" placeholder="Map Name (e.g. Bermuda)" value={newTourney.map} onChange={e => setNewTourney({...newTourney, map: e.target.value})} className="w-full p-2 bg-gray-900 border border-gray-700 rounded text-xs text-white" required />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <input type="date" value={newTourney.date} onChange={e => setNewTourney({...newTourney, date: e.target.value})} className="w-full p-2 bg-gray-900 border border-gray-700 rounded text-xs text-white" required />
+                    <input type="time" value={newTourney.time} onChange={e => setNewTourney({...newTourney, time: e.target.value})} className="w-full p-2 bg-gray-900 border border-gray-700 rounded text-xs text-white" required />
+                  </div>
+
+                  <input type="text" placeholder="Rules (comma separated)" value={newTourney.rules} onChange={e => setNewTourney({...newTourney, rules: e.target.value})} className="w-full p-2 bg-gray-900 border border-gray-700 rounded text-xs text-white" />
+                  <input type="text" placeholder="Prize Description" value={newTourney.prize} onChange={e => setNewTourney({...newTourney, prize: e.target.value})} className="w-full p-2 bg-gray-900 border border-gray-700 rounded text-xs text-white" />
+                  
+                  <button type="submit" className="w-full py-2 bg-green-600 text-white font-bold text-xs rounded hover:bg-green-700 transition">
+                    Publish Tournament
+                  </button>
+                </form>
+
+                {/* Manage Existing Tourneys (Publish Rooms) */}
+                <div className="space-y-3 pt-2">
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">Manage Active Rooms</h4>
+                  {tournaments.map(tItem => (
+                    <div key={tItem.id} className="bg-black p-3 rounded border border-gray-800 flex flex-col gap-2 text-xs">
+                      <div className="font-bold text-[#E50914]">{tItem.title}</div>
+                      <div className="flex gap-2">
+                        <input type="text" id={`room-${tItem.id}`} placeholder="Room ID" className="w-1/2 p-1.5 bg-gray-900 border border-gray-700 rounded text-white" defaultValue={tItem.roomId !== 'PENDING' ? tItem.roomId : ''} />
+                        <input type="text" id={`pass-${tItem.id}`} placeholder="Password" className="w-1/2 p-1.5 bg-gray-900 border border-gray-700 rounded text-white" defaultValue={tItem.roomPass !== 'PENDING' && tItem.roomPass !== 'HIDDEN' ? tItem.roomPass : ''} />
+                      </div>
+                      <button onClick={() => {
+                        const rId = document.getElementById(`room-${tItem.id}`).value;
+                        const rPass = document.getElementById(`pass-${tItem.id}`).value;
+                        if(rId && rPass) publishRoomCredentials(tItem.id, rId, rPass);
+                        else alert('Please enter both Room ID and Password');
+                      }} className="py-1 bg-[#E50914] text-white font-bold rounded hover:bg-red-700 transition">
+                        Publish Room Credentials
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+              </div>
+            )}
+
+            {/* Official Contact Info */}
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-2 text-xs">
+              <h4 className="font-bold text-white border-b border-gray-800 pb-1">{t('অফিসিয়াল যোগাযোগের তথ্য ও পেমেন্ট', 'Official Contact & Payment Info')}</h4>
+              <p className="text-gray-400"><strong>Nagad Contact Number:</strong> <span className="font-mono text-white">01733024817</span></p>
+              <p className="text-gray-400"><strong>Supported Payment Methods:</strong> <span className="text-white">bKash, Nagad (Rocket completely removed)</span></p>
+            </div>
+
+          </div>
+        )}
+
+      </main>
+
+      {/* Bottom Navigation */}
+      <nav aria-label="Bottom Navigation" className={`fixed bottom-0 left-0 right-0 border-t border-red-900/50 p-2 flex justify-around items-center z-50 backdrop-blur-md ${theme === 'dark' ? 'bg-black/95' : 'bg-white/95 text-black'}`}>
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex flex-col items-center space-y-1 transition-all ${isActive ? 'text-[#E50914] scale-105' : 'text-gray-400 hover:text-white'}`}>
+              <Icon className="w-6 h-6 stroke-[2.5]" />
+              <span className="text-[10px] font-bold">{tab.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+
+    </div>
+  );
+}
